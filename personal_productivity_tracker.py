@@ -1,6 +1,5 @@
 import os
-from datetime import datetime
-from datetime import date
+from datetime import datetime, date
 import json
 
 today=date.today().isoformat()
@@ -29,16 +28,21 @@ data= {
 if os.path.exists(filename):
     with open (filename, "r") as f:
     
-
         try:
-            Data=json.load(f)
-        except json.JSONDcodeError:
-            Data=[]
+            existing_logs=json.load(f)
+        except json.JSONDecodeError:
+            existing_logs=[]
 
 else:
-    Data=[]
+    existing_logs=[]
 
-Data.append(data)
+existing_logs.append(data)
 
 with open(filename, "w") as f:
-    json.dump(Data, f, indent=3)
+    json.dump(existing_logs, f, indent=3)
+
+with open(filename, "r") as f:
+    existing_logs=json.load(f)
+    for log in existing_logs:
+        print(f"\n\n\nDate: {log['Date']}\nWake_time: {log['Wakeup_time']}\nTasks completed: {log['Number_of_tasks_completed']}\nFocus: {log['Focus']}\nNotes/Thoughts: {log['Notes/thoughts']}")
+
