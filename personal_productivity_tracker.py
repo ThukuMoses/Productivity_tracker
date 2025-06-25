@@ -55,33 +55,30 @@ with open(filename, "w") as f:
 
     for log in existing_logs:
         print(f"\n\nDate: {log['Date']}\nWake_time: {log['Wakeup_time']}\nTasks completed: {log['Number_of_tasks_completed']}\nFocus: {log['Focus']}\nNotes/Thoughts: {log['Notes/thoughts']}\n\n")
-        # print("-"*40)#for visual clarity
+        print("-"*40)#for visual clarity
 
-# --- Summary Analysis Section ---
-    total_focus=0
-    total_Focus=[]# List to collect all focus scores
-    total_tasks=0
     log_count=0
-    totalTasks=[] # List to collect all task counts
     
     for log in existing_logs:
-        totalTasks.append(log['Number_of_tasks_completed'])# store each day's task count
-        total_tasks=sum(totalTasks)# store each day's focus score
-        total_Focus.append(log['Focus'])# compute total tasks so far
-        total_focus=sum(total_Focus)# compute total focus score so far
         log_count+=1 # count number of logs
-
+    total_focus=sum(log["Focus"] for log in existing_logs)
+    total_tasks=sum(log["Number_of_tasks_completed"]for log in existing_logs)
         # Print out summary metrics
-    print(f"Total tasks: {total_tasks} | Number of logs: {log_count} | Total Focus List:{total_Focus} | Total focus: {total_focus} | total task list: {totalTasks}")
+    print(f"Total tasks: {total_tasks} | Number of logs: {log_count} | Total focus: {total_focus}")
     # Function to calculate average focus
     def average():
         return total_focus/log_count if log_count >0 else 0#condition to avoid division by zero error
     print(f"Average focus:{average()}")
 
-    most_productive_day=max(totalTasks)
+    max_tasks=max(log["Number_of_tasks_completed"] for log in existing_logs)
+    max_focus=max(log["Focus"]for log in existing_logs)
     def productive_day():
-    
-        return most_productive_day
-    print(data)
-#print(productive_day)
-#print(f"Most productive day | {log['Date']} | (Number of tasks: {most_productive_day})")
+        return[f'On {log["Date"]}, you completed {log["Number_of_tasks_completed"]} tasks with focus of {log["Focus"]}'
+         for log in existing_logs
+         if log["Number_of_tasks_completed"]==max_tasks and log["Focus"]==max_focus]
+        
+    #print(data)
+
+
+for message in productive_day():
+    print(message)
