@@ -69,16 +69,40 @@ with open(filename, "w") as f:
     def average():
         return total_focus/log_count if log_count >0 else 0#condition to avoid division by zero error
     print(f"Average focus:{average()}")
+# Check if there are any logs in the JSON file; exit if missing
+if not existing_logs:
+    print("Logs missing! Please check your data.json!")
+    exit()
 
-    max_tasks=max(log["Number_of_tasks_completed"] for log in existing_logs)
-    max_focus=max(log["Focus"]for log in existing_logs)
-    def productive_day():
-        return[f'On {log["Date"]}, you completed {log["Number_of_tasks_completed"]} tasks with focus of {log["Focus"]}'
-         for log in existing_logs
-         if log["Number_of_tasks_completed"]==max_tasks and log["Focus"]==max_focus]
-        
-    #print(data)
+# Find the maximum number of tasks completed on any day
+max_tasks = max(log["Number_of_tasks_completed"] for log in existing_logs)
+
+# Collect all logs that match that maximum task count
+productive_logs = [
+    log for log in existing_logs
+    if log["Number_of_tasks_completed"] == max_tasks
+]
+
+# Find the highest focus score among those productive days
+max_focus = max(log["Focus"] for log in productive_logs)
+
+# Function to describe the most productive day(s)
+def most_productive_day(productive_logs, max_focus):
+    if len(productive_logs) == 1:
+        log = productive_logs[0]
+        return [
+            f'{log["Date"]} was your most productive day, you completed {log["Number_of_tasks_completed"]} tasks'
+        ]
+    else:
+        return [
+            f'On {log["Date"]}, you completed {log["Number_of_tasks_completed"]} tasks with focus of {log["Focus"]}'
+            for log in productive_logs
+            if log["Focus"] == max_focus
+        ]
+
+# Generate the message(s) and display them
+message = most_productive_day(productive_logs, max_focus)
+for m in message:
+    print(m)
 
 
-for message in productive_day():
-    print(message)
