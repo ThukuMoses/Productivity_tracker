@@ -140,35 +140,55 @@ class productivityTracker:
             f"On {log['Date']}, you completed {log['Number_of_tasks_completed']} tasks "
             f"with a focus score of {log['Focus']}."
         )
-
-if __name__ == "__main__":
-    tracker = productivityTracker()
-    
-    # Uncomment this to add a new log interactively
-    tracker.add_log()
-       
-    # View all logs
-    #print("\n=== Viewing All Logs ===")
-    #print(tracker.view_logs())
-    
-    # Average focus and summary
-    print("\n=== Average Focus ===")
-    tracker.average_focus()
-    
-    # Most productive day
-    print("\n=== Most Productive Day(s) ===")
-    messages = tracker.most_productive_day()
-    for m in messages:
-        print(m)
-
-'''# Generate the message(s) and display them
-tracker=productivityTracker()
-message = tracker.most_productive_day()
-for m in message:
-    print(m)'''
-
+tracker = productivityTracker()
+def test():
+    if __name__ == "__main__":
         
         
+        # Uncomment this to add a new log interactively
+        tracker.add_log()
+        
+        # View all logs
+        print("\n=== Viewing All Logs ===")
+        print(tracker.view_logs())
+        
+        # Average focus and summary
+        print("\n=== Average Focus ===")
+        tracker.average_focus()
+        
+        # Most productive day
+        print("\n=== Most Productive Day(s) ===")
+        messages = tracker.most_productive_day()
+        for m in messages:
+            print(m)
+#test()
+#Menu for choosing the action to do
+while True:
+    choice=input("""
+        1.Make tests
+        2.Add log
+        3.View logs
+        4.Average focus
+        5.Most productive day
+        6.Quit
+    Choose: """)
 
-    
-
+    match choice:
+        case "1":
+            test()
+        case "2":
+            tracker.add_log()
+        case "3":
+            print("\n=== Viewing All Logs ===")
+            print(tracker.view_logs())
+        case "4":
+            print("\n=== Average Focus ===")
+            tracker.average_focus()   
+        case "5":
+            message=tracker.most_productive_day()
+            for m in message:
+                print(m)
+        case "6":
+            break
+        case _:
+            print("Invalid option, try again.")
