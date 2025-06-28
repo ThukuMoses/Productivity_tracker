@@ -1,108 +1,174 @@
 import os
-from datetime import datetime, date
 import json
+from datetime import datetime, date
+
+class productivityTracker:
+    def __init__(self):
+        self.filename = "data.json"
+        self.existing_logs = self.load_logs()
+
+    def load_logs(self):
+        """
+        Load the logs from the JSON file, or return an empty list
+        if the file does not exist or is corrupted.
+        """
+        if os.path.exists(self.filename):
+            with open(self.filename, "r") as f:
+                try:
+                    logs = json.load(f)
+                except json.JSONDecodeError:
+                    logs = []
+        else:
+            logs = []
+        return logs
+
+    def save_logs(self):
+        """
+        Save the current state of existing_logs to the JSON file.
+        """
+        with open(self.filename, "w") as f:
+            json.dump(self.existing_logs, f, indent=3)
+        print("Logs saved successfully!")
+
+    def add_log(self):
+        """
+        Prompt user to add a new productivity log and save it.
+        """
+        today = date.today().isoformat()
+
+        while True:
+            try:
+                wakeup_time = input("At what time did you wake up? (HH:MM 24hr): ")
+                # validate format
+                _ = datetime.strptime(wakeup_time, "%H:%M").time()
+                break
+            except ValueError:
+                print("Invalid time. Enter time in correct format (HH:MM)")
+
+        number_of_tasks_completed = int(input("How many tasks did you complete?: "))
+        focus_rate = int(input("What was your focus rate? (1-10): "))
+        notes = input("Any thoughts about your day?: ")
+
+        data = {
+            "Date": today,
+            "Wakeup_time": wakeup_time,
+            "Number_of_tasks_completed": number_of_tasks_completed,
+            "Focus": focus_rate,
+            "Notes/thoughts": notes,
+        }
+
+        self.existing_logs.append(data)
+        self.save_logs()
+
+    def view_logs(self):
+        """
+        Returns all logs as a single formatted string.
+        """
+        log_strings = []
+        for log in self.existing_logs:
+            separator = "-" * 40
+            details = (
+                f"\nDate: {log['Date']}\n"
+                f"Wakeup time: {log['Wakeup_time']}\n"
+                f"Tasks completed: {log['Number_of_tasks_completed']}\n"
+                f"Focus: {log['Focus']}\n"
+                f"Notes/Thoughts: {log['Notes/thoughts']}\n"
+            )
+            formatted_string = separator + details
+            log_strings.append(formatted_string)
+        return "\n".join(log_strings)
+
+    def average_focus(self):
+        """
+        Calculates and prints the average focus across all logs,
+        along with total tasks and total focus.
+        """
+        if not self.existing_logs:
+            print("Logs missing! Please check your data.json.")
+            return
+
+        log_count = len(self.existing_logs)
+        total_focus = sum(log["Focus"] for log in self.existing_logs)
+        total_tasks = sum(log["Number_of_tasks_completed"] for log in self.existing_logs)
+        average = total_focus / log_count if log_count > 0 else 0
+
+        print(f"Total tasks: {total_tasks} | Number of logs: {log_count} | Total focus: {total_focus}")
+        print(f"Average focus: {average:.2f}")
 
 
-# Get today's date in ISO format (YYYY-MM-DD)
-today=date.today().isoformat()
 
-# Loop until valid wake-up time is entered (in HH:MM 24hr format)
-while True:
-    try:
-        Wakeup_time=input("At what time did you wake up?(HH:MM) 24hr : ")
-        wake_time=datetime.strptime(Wakeup_time, "%H:%M").time()# validate time format
-        break
-    except ValueError:
-        print("Invalid time, Enter time in correct format!")
+    def most_productive_day(self) -> list[str]:
+        """
+        Identifies the most productive day(s) based on:
+          - the highest number of tasks completed
+          - and if tied, the highest focus among those days.
+        Returns:
+            A list of descriptive strings summarizing the most productive day(s).
+            Returns an empty list if no logs exist.
+        """
+        if not self.existing_logs:
+            print("Logs missing! Please check your data.json.")
+            return []
 
-# Collect daily input from the user
-number_of_tasks_completed=int(input("How many tasks did you complete?: "))
-focus_rate=int(input("What was you focus rate?(1-10): "))
-notes= input("Any thoughts about your day?: ")
+        # highest task count across all logs
+        max_tasks = max(log["Number_of_tasks_completed"] for log in self.existing_logs)
 
-filename="data.json"
-# Create a dictionary for today's log
-data= {
-    "Date":today,
-    "Wakeup_time":Wakeup_time,
-    "Number_of_tasks_completed":number_of_tasks_completed,
-    "Focus":focus_rate,
-    "Notes/thoughts":notes,
-}
-
-
-# Load existing logs if the file exists, otherwise start with an empty list
-if os.path.exists(filename):
-    with open (filename, "r") as f:
-    
-        try:
-            existing_logs=json.load(f)
-        except json.JSONDecodeError:
-            existing_logs=[] # If file is empty or corrupted, start fresh
-
-else:
-    existing_logs=[]
-
-
-# Add today's log to the list
-existing_logs.append(data)
-
-# Save all logs back to the file
-with open(filename, "w") as f:
-    for i, log in enumerate(existing_logs):#addition of index to data dictionary
-        log['index']=i   
-    json.dump(existing_logs, f, indent=3)
-
-    for log in existing_logs:
-        print(f"\n\nDate: {log['Date']}\nWake_time: {log['Wakeup_time']}\nTasks completed: {log['Number_of_tasks_completed']}\nFocus: {log['Focus']}\nNotes/Thoughts: {log['Notes/thoughts']}\n\n")
-        print("-"*40)#for visual clarity
-
-    log_count=0
-    
-    for log in existing_logs:
-        log_count+=1 # count number of logs
-    total_focus=sum(log["Focus"] for log in existing_logs)
-    total_tasks=sum(log["Number_of_tasks_completed"]for log in existing_logs)
-        # Print out summary metrics
-    print(f"Total tasks: {total_tasks} | Number of logs: {log_count} | Total focus: {total_focus}")
-    # Function to calculate average focus
-    def average():
-        return total_focus/log_count if log_count >0 else 0#condition to avoid division by zero error
-    print(f"Average focus:{average()}")
-# Check if there are any logs in the JSON file; exit if missing
-if not existing_logs:
-    print("Logs missing! Please check your data.json!")
-    exit()
-
-# Find the maximum number of tasks completed on any day
-max_tasks = max(log["Number_of_tasks_completed"] for log in existing_logs)
-
-# Collect all logs that match that maximum task count
-productive_logs = [
-    log for log in existing_logs
-    if log["Number_of_tasks_completed"] == max_tasks
-]
-
-# Find the highest focus score among those productive days
-max_focus = max(log["Focus"] for log in productive_logs)
-
-# Function to describe the most productive day(s)
-def most_productive_day(productive_logs, max_focus):
-    if len(productive_logs) == 1:
-        log = productive_logs[0]
-        return [
-            f'{log["Date"]} was your most productive day, you completed {log["Number_of_tasks_completed"]} tasks'
+        # filter logs with the maximum tasks
+        productive_logs = [
+            log for log in self.existing_logs
+            if log["Number_of_tasks_completed"] == max_tasks
         ]
-    else:
-        return [
-            f'On {log["Date"]}, you completed {log["Number_of_tasks_completed"]} tasks with focus of {log["Focus"]}'
-            for log in productive_logs
-            if log["Focus"] == max_focus
-        ]
 
-# Generate the message(s) and display them
-message = most_productive_day(productive_logs, max_focus)
+        # among the productive_logs, find highest focus
+        max_focus = max(log["Focus"] for log in productive_logs)
+
+        if len(productive_logs) == 1:
+            log = productive_logs[0]
+            return [self.format_productive_log(log)]
+        else:
+            return [
+                self.format_productive_log(log)
+                for log in productive_logs
+                if log["Focus"] == max_focus
+            ]
+
+    def format_productive_log(self, log: dict) -> str:
+        """
+        Helper method to return a human-readable summary of a single log.
+        """
+        return (
+            f"On {log['Date']}, you completed {log['Number_of_tasks_completed']} tasks "
+            f"with a focus score of {log['Focus']}."
+        )
+
+if __name__ == "__main__":
+    tracker = productivityTracker()
+    
+    # Uncomment this to add a new log interactively
+    tracker.add_log()
+       
+    # View all logs
+    #print("\n=== Viewing All Logs ===")
+    #print(tracker.view_logs())
+    
+    # Average focus and summary
+    print("\n=== Average Focus ===")
+    tracker.average_focus()
+    
+    # Most productive day
+    print("\n=== Most Productive Day(s) ===")
+    messages = tracker.most_productive_day()
+    for m in messages:
+        print(m)
+
+'''# Generate the message(s) and display them
+tracker=productivityTracker()
+message = tracker.most_productive_day()
 for m in message:
-    print(m)
+    print(m)'''
 
+        
+        
+
+    
 
