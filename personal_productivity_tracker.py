@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime, date
 
-class productivityTracker:
+class ProductivityTracker:
     def __init__(self):
         self.filename = "data.json"
         self.existing_logs = self.load_logs()
@@ -30,12 +30,10 @@ class productivityTracker:
             json.dump(self.existing_logs, f, indent=3)
         print("Logs saved successfully!")
 
-    def add_log(self):
+    def collect_log_data(self, today: str)-> dict:
         """
         Prompt user to add a new productivity log and save it.
         """
-        today = date.today().isoformat()
-
         while True:
             try:
                 wakeup_time = input("At what time did you wake up? (HH:MM 24hr): ")
@@ -43,22 +41,46 @@ class productivityTracker:
                 _ = datetime.strptime(wakeup_time, "%H:%M").time()
                 break
             except ValueError:
-                print("Invalid time. Enter time in correct format (HH:MM)")
+                    print("Invalid time. Enter time in correct format (HH:MM)")
 
         number_of_tasks_completed = int(input("How many tasks did you complete?: "))
         focus_rate = int(input("What was your focus rate? (1-10): "))
         notes = input("Any thoughts about your day?: ")
 
         data = {
-            "Date": today,
-            "Wakeup_time": wakeup_time,
-            "Number_of_tasks_completed": number_of_tasks_completed,
-            "Focus": focus_rate,
-            "Notes/thoughts": notes,
-        }
+                "Date": today,
+                "Wakeup_time": wakeup_time,
+                "Number_of_tasks_completed": number_of_tasks_completed,
+                "Focus": focus_rate,
+                "Notes/thoughts": notes,
+            }
+        return data
+    
+    def add_log(self):
+        today=date.today().isoformat()
+        check_log=any((log["Date"])==today for log in self.existing_logs)
+        if not check_log:
+            data=self.collect_log_data(today)#call helper method
+            self.existing_logs.append(data)
+            self.save_logs()
+        else:
+            your_choice=input("""
+                You already logged today
+                1.Modify today's log
+                2.quit
+            Choose: """)
+            match your_choice:
+                case "1":
+                    #rewrite existing logs without today's date
+                    self.existing_logs=[log for log in self.existing_logs if log["Date"]!= today]
+                    data=self.collect_log_data(today)
+                    self.existing_logs.append(data)
+                    self.save_logs()
+                case "2":
+                     print("Quitting without changes")   
+                case _:
+                    print("Invalid option! Please choose 1 or 2.")            
 
-        self.existing_logs.append(data)
-        self.save_logs()
 
     def view_logs(self):
         """
@@ -94,8 +116,6 @@ class productivityTracker:
 
         print(f"Total tasks: {total_tasks} | Number of logs: {log_count} | Total focus: {total_focus}")
         print(f"Average focus: {average:.2f}")
-
-
 
     def most_productive_day(self) -> list[str]:
         """
@@ -140,10 +160,11 @@ class productivityTracker:
             f"On {log['Date']}, you completed {log['Number_of_tasks_completed']} tasks "
             f"with a focus score of {log['Focus']}."
         )
-tracker = productivityTracker()
+    
+tracker = ProductivityTracker()
+
 def test():
     if __name__ == "__main__":
-        
         
         # Uncomment this to add a new log interactively
         tracker.add_log()
